@@ -1,0 +1,430 @@
+const int SWITCH_PIN = 2;
+const int BUZZER_PIN = 6;
+const int LED_PIN = 5;//赤 
+const int LED_B_PIN = 4;
+const int led_PIN = 3;
+int sw;
+int led;
+int melo = 500;   // 音の長さを指定
+int val = 0;           // 入力ピンの状態がこの変数(val)に記憶される
+int old_val = 0;       // valの前の値を保存しておく変数
+int state = 0;         // LEDの状態(0ならオフ、1ならオン)
+int count = 0;
+
+void setup() {
+  Serial.begin(9600);//シリアル通信を9600bpsで初期化
+  pinMode(LED_PIN, OUTPUT); //RGB LED アノードコモン
+  pinMode(LED_B_PIN, OUTPUT);
+    digitalWrite(LED_PIN, HIGH);//カソードコモンよりHIGHで消灯
+    digitalWrite(LED_B_PIN, HIGH);
+  pinMode(SWITCH_PIN, INPUT_PULLUP);
+  pinMode(BUZZER_PIN, OUTPUT);
+  pinMode(led_PIN, OUTPUT);
+     digitalWrite(led_PIN, LOW);
+  attachInterrupt(0, funcA1, CHANGE);//ボタン押下でLED停止,ledがON
+  attachInterrupt(1, funcB, HIGH);
+
+    //7～13番ピン　デジタル出力へセット
+  for (int i=0; i<7; i++){
+   pinMode(i+7,OUTPUT);
+  }
+}
+
+
+void funcA1() {
+  //スイッチ
+  sw = digitalRead(SWITCH_PIN);
+  if (sw == LOW) {
+    //LEDオフ
+    digitalWrite(LED_PIN, HIGH);
+    digitalWrite(LED_B_PIN, HIGH);
+    
+    digitalWrite(led_PIN, HIGH);//led ON funcB起動
+    delay(melo*100);
+  }
+}
+
+void funcB(){
+  //ブザーオフ
+  tone(BUZZER_PIN, 0, melo*100)  ;//ledがONでブザー停止
+  }
+
+//LEDレイアウトを定義
+boolean Num_Array[10][7]={
+{0,0,0,0,0,0,1}, //0
+{1,0,0,1,1,1,1}, //1
+{0,0,1,0,0,1,0}, //2
+{0,0,0,0,1,1,0}, //3
+{1,0,0,1,1,0,0}, //4
+{0,1,0,0,1,0,0}, //5
+{0,1,0,0,0,0,0}, //6
+{0,0,0,1,1,0,1}, //7
+{0,0,0,0,0,0,0}, //8
+{0,0,0,0,1,0,0} //9
+};
+//LED表示関数を定義
+
+void NumPrint(int Number){
+  for (int w=0; w<7; w++){
+  digitalWrite(w+7,Num_Array[Number][w]);
+  }
+}
+
+
+void loop() {
+  int analog1_data;
+  float V1;
+  analog1_data = analogRead(1);//アナログ1番ピンの入力状態をanalog_dataに代入
+
+  V1 = float(analog1_data) * (5.0 / 1023.0); //A/D値から電圧値を算出
+  Serial.print(V1);
+  Serial.println("V");
+   Serial.print(count);
+  Serial.println("回"); 
+ 
+  
+   NumPrint(state);
+  //変化があるかどうかチェック
+  if((V1 == 5.0) && (old_val == 0)) {
+    state = (state+1) % 10;
+    NumPrint(state);
+    delay(300);
+  }
+  if(V1 == 5.0){
+    count = count + 1;
+    }
+  delay(200);
+  old_val = val;  // val保管
+
+
+
+  
+  int analog_data;
+  float voltage;
+  //スイッチ
+  sw = digitalRead(SWITCH_PIN);
+  led = digitalRead(LED_PIN);
+  analog_data = analogRead(0);//アナログ0番ピンの入力状態をanalog_dataに代入
+
+  voltage = float(analog_data) * (5.0 / 1023.0); //A/D値から電圧値を算出
+  Serial.print(voltage);
+  Serial.println("V");
+  delay(500);
+
+
+
+  if (voltage > 4.0) {
+    if (sw == HIGH ) {
+      //PULLUPよりボタン押下時LOW．離している間はHIGH．
+        digitalWrite(LED_PIN, LOW);//アノードコモンよりLOWで発光
+        digitalWrite(LED_B_PIN, HIGH);
+     delay(500);
+        digitalWrite(LED_PIN, HIGH);
+        digitalWrite(LED_B_PIN, HIGH);
+     delay(count*1000); //10秒経過
+       digitalWrite(LED_PIN, LOW);
+       digitalWrite(LED_B_PIN, HIGH);
+     delay(2000);
+       digitalWrite(LED_PIN, HIGH);
+       digitalWrite(LED_B_PIN, HIGH);
+    delay(count*1000);//8000
+       digitalWrite(LED_PIN, HIGH);
+       digitalWrite(LED_B_PIN, LOW); //20秒経過
+    delay(2000);
+       digitalWrite(LED_PIN, HIGH);
+       digitalWrite(LED_B_PIN, HIGH);
+    delay(1000); //30秒経過 8000
+//目覚まし機能(ボタン押下で停止)
+  //LED
+       digitalWrite(LED_PIN, LOW);
+       digitalWrite(LED_B_PIN, LOW); //20秒経過
+  //ブザー(曲)
+  int i = 326;//8分
+  int j = 163;//16分
+  int k = 489;//8分・
+  int l = 652;//4分
+  int PIN = BUZZER_PIN ;
+   
+  tone(PIN, 988, i);
+  delay(i);
+  tone(PIN, 1047, i);
+  delay(i);
+  tone(PIN, 0, i);
+  delay(i);
+  tone(PIN, 784, i);
+  delay(i);
+  tone(PIN, 880, i);
+  delay(i);
+  tone(PIN, 1047, i);
+  delay(i);
+  tone(PIN, 0, i);
+  delay(i);
+  tone(PIN, 784, i);
+  delay(i);
+  tone(PIN, 880, i);
+  delay(i);
+  tone(PIN, 1047, i);
+  delay(i);
+  tone(PIN, 1175, k);
+  delay(k);
+  tone(PIN, 1047, j);
+  delay(j);
+  tone(PIN, 1175, k);
+  delay(k);
+  tone(PIN, 1047, j);
+  delay(j);
+  tone(PIN, 1175, j);
+  delay(j);
+  tone(PIN, 1319, j);
+  delay(j);
+  tone(PIN, 1175, l);
+  delay(l);
+  //
+  tone(PIN, 0, j);
+  delay(j);
+  tone(PIN, 784, j);//740
+  delay(j);
+  tone(PIN, 1175, k);
+  delay(k);
+  tone(PIN, 1047, j);
+  delay(j);
+  tone(PIN, 1175, k);
+  delay(k);
+  tone(PIN, 1047, j);
+  delay(j);
+  tone(PIN, 1175, j);
+  delay(j);
+  tone(PIN, 1319, j);
+  delay(j);
+  tone(PIN, 1175, l);
+  delay(l);
+  tone(PIN, 0, j);
+  delay(j);
+  //
+  tone(PIN, 1047, j);
+  delay(j);
+  tone(PIN, 1047, k);
+  delay(k);
+  tone(PIN, 932, j);
+  delay(j);
+  tone(PIN, 1047, k);
+  delay(k);
+  tone(PIN, 932, j);
+  delay(j);
+  tone(PIN, 1047, j);
+  delay(j);
+  tone(PIN, 1175, j);
+  delay(j);
+  tone(PIN, 1047, l);
+  delay(l);
+  tone(PIN, 784, i);
+  delay(i);
+  tone(PIN, 880, l+j);
+  delay(l+j);//ラ
+  //
+  tone(PIN, 0, i);
+  delay(i);
+  tone(PIN, 523, i);
+  delay(i);
+  tone(PIN, 523, i);
+  delay(i);
+  tone(PIN, 587, i);
+  delay(i);
+  tone(PIN, 880, i);
+  delay(i);
+  tone(PIN, 784, i);
+  delay(i);
+  tone(PIN, 0, i);
+  delay(i);
+  tone(PIN, 784, i);
+  delay(i);
+  tone(PIN, 784, i);
+  delay(i);  
+  tone(PIN, 784, i);
+  delay(i);  
+  tone(PIN, 784,i );
+  delay(i);
+  tone(PIN, 880, i);
+  delay(i);
+  tone(PIN, 1047, i);
+  delay(i);
+
+  tone(PIN, 784, j);
+  delay(j);
+  tone(PIN, 1319, i+j);
+  delay(i+j);
+  tone(PIN, 1047, j);
+  delay(j);
+  tone(PIN, 1047, i+j);
+  delay(i+j);
+  tone(PIN, 784, j);
+  delay(j);
+  tone(PIN, 784, i+j);
+  delay(i+j);
+  tone(PIN, 698, j);
+  delay(j);
+  tone(PIN, 659, i+j);
+  delay(i+j);
+  tone(PIN, 0, j);
+  delay(j);  
+  tone(PIN, 659, j);
+  delay(j);  
+  tone(PIN, 1319,i );
+  delay(i);
+  tone(PIN, 1047, j);
+  delay(j);
+  tone(PIN, 1047, i+j);
+  delay(i+j);
+  tone(PIN, 740, j);
+  delay(j);
+  tone(PIN, 784, i);
+  delay(i);
+  tone(PIN, 740, j);
+  delay(j);
+  tone(PIN, 698, i);
+  delay(i);
+  
+  //ループ
+  tone(PIN, 988, i);
+  delay(i);
+  tone(PIN, 1047, i);
+  delay(i);
+   tone(PIN, 0, i);
+  delay(i);
+  tone(PIN, 784, i);
+  delay(i);
+  tone(PIN, 880, i);
+  delay(i);
+  tone(PIN, 1047, i);
+  delay(i);
+  tone(PIN, 0, i);
+  delay(i);
+  tone(PIN, 784, i);
+  delay(i);
+  tone(PIN, 880, i);
+  delay(i);
+  tone(PIN, 1047, i);
+  delay(i);
+  tone(PIN, 1175, k);
+  delay(k);
+  tone(PIN, 1047, j);
+  delay(j);
+  tone(PIN, 1175, k);
+  delay(k);
+  tone(PIN, 1047, j);
+  delay(j);
+  tone(PIN, 1175, j);
+  delay(j);
+  tone(PIN, 1319, j);
+  delay(j);
+  tone(PIN, 1175, l);
+  delay(l);
+  
+  tone(PIN, 0, j);
+  delay(j);
+  tone(PIN, 659, j);//変更
+  delay(j);
+  tone(PIN, 1175, k);
+  delay(k);
+  tone(PIN, 1047, j);
+  delay(j);
+  tone(PIN, 1175, k);
+  delay(k);
+  tone(PIN, 1047, j);
+  delay(j);
+  tone(PIN, 1175, j);
+  delay(j);
+  tone(PIN, 1319, j);
+  delay(j);
+  tone(PIN, 1175, l);
+  delay(l);
+  tone(PIN, 0, j);
+  delay(j);
+  //
+  tone(PIN, 1047, j);
+  delay(j);
+  tone(PIN, 1047, k);
+  delay(k);
+  tone(PIN, 932, j);
+  delay(j);
+  tone(PIN, 1047, k);
+  delay(k);
+  tone(PIN, 932, j);
+  delay(j);
+  tone(PIN, 1047, j);
+  delay(j);
+  tone(PIN, 1175, j);
+  delay(j);
+  tone(PIN, 1047, l);
+  delay(l);
+  tone(PIN, 784, i);
+  delay(i);
+  tone(PIN, 880, l+j);
+  delay(l+j);
+
+  tone(PIN, 0, i);
+  delay(i);
+  tone(PIN, 523, i);
+  delay(i);
+  tone(PIN, 523, i);
+  delay(i);
+  tone(PIN, 587, i);
+  delay(i);
+  tone(PIN, 880, i);
+  delay(i);
+  tone(PIN, 784, i);
+  delay(i);
+  tone(PIN, 0, i);
+  delay(i);
+  tone(PIN, 784, i);
+  delay(i);
+  tone(PIN, 784, i);
+  delay(i);  
+  tone(PIN, 784, i);
+  delay(i);  
+  tone(PIN, 784,i );
+  delay(i);
+  tone(PIN, 880, i);
+  delay(i);
+  tone(PIN, 1047, i);
+  delay(i);
+  tone(PIN, 1175, i);
+  delay(i);
+  tone(PIN, 1319, i);
+  delay(i);
+  tone(PIN, 1047, j);
+  delay(j);
+  tone(PIN, 1047, i+j);
+  delay(i+j);
+  tone(PIN, 784, j);
+  delay(j);
+  tone(PIN, 784, i+j);
+  delay(i+j);
+  tone(PIN, 698, j);
+  delay(j);  
+  tone(PIN, 659, i+j);
+  delay(i+j);  
+  tone(PIN, 698 , j);
+  delay(j);
+  tone(PIN, 784, i);
+  delay(i);//
+  tone(PIN, 0, l);
+  delay(l);
+  tone(PIN, 0, i);
+  delay(i);
+  tone(PIN, 784, j);
+  delay(j);
+  tone(PIN, 784, j);
+  delay(j);
+  tone(PIN, 784, i);
+  delay(i);
+  tone(PIN, 1047, i);
+  delay(i);
+  tone(PIN, 988, i);
+  delay(i);
+  tone(PIN, 1047, l+i);
+  delay(l+i);//end  
+      
+    }
+  }
+}
